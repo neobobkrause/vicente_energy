@@ -1,0 +1,16 @@
+{
+  // The name as you want it to appear in HACS
+  "name": "Vicente Energy",
+
+  // We keep the integration under custom_components/, so:
+  "content_in_root": false,
+
+  // This is an integration, not a theme or plugin
+  "domains": ["integration"],
+
+  // Minimum HA version you support
+  "homeassistant": ">=2023.5.0",
+
+  // Render your README.md on the HACS detail page
+  "render_readme": true
+}
