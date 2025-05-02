@@ -1,0 +1,21 @@
+# Home Assistant custom integration
+custom_components/vicente_energy/*.py[cod]
+custom_components/vicente_energy/__pycache__/
+
+# Python artifacts
+*.pyc
+__pycache__/
+.env
+.venv/
+venv/
+ENV/
+env/
+build/
+dist/
+
+# macOS
+.DS_Store
+
+# Editor folders
+.vscode/
+.idea/

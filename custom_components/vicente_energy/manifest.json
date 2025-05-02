@@ -1,0 +1,9 @@
+{
+  "domain": "vicente_energy",
+  "name": "Vicente Energy Neighbor Charging Budgeter",
+  "version": "0.1.0",
+  "documentation": "https://github.com/your-repo/vicente_energy",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@your-github-handle"]
+}
