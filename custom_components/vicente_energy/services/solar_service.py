@@ -1,3 +1,4 @@
+from .service import VEService, VEEntityStateChangeHandler
 
 class SolarService(VEService):
     def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):

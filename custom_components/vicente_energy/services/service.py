@@ -1,13 +1,15 @@
-from homeassistant.helpers.entity_registry import async_get
-from homeassistant.helpers.event import async_track_state_change
+from abc import ABC
+from collections.abc import Callable
+from typing import Optional
+
+from homeassistant.core import HomeAssistant
 from homeassistant.core import State
-from abc import ABC, abstractmethod
-from typing import Callable
+from homeassistant.helpers.event import async_track_state_change
 
 VEEntityStateChangeHandler = Callable[[str, State, State], bool]
 
 class VEService(ABC):
-    def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
+    def __init__(self, hass: Optional[HomeAssistant], entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:
         self._hass = hass
         self._entity_handlers: dict[str, VEEntityStateChangeHandler] = entity_handlers  # Maps entity_id → handler
         self._callbacks: list[VEEntityStateChangeHandler] = []
@@ -36,9 +38,10 @@ class VEService(ABC):
     def register_callback(self, callback: VEEntityStateChangeHandler):
         self._callbacks.append(callback)
 
-    async def _handle_state_change(self, entity_id: str, old_state: State, new_state: State):
+    async def _handle_state_change(self, entity_id: str, old_state: State | None, new_state: State | None) -> None:
         if old_state is None or new_state is None:
             return
+            
         if new_state.state == old_state.state:
             return
 

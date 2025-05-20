@@ -16,7 +16,7 @@ To install, copy the `custom_components/vicente_energy` folder into your Home As
 
 home-assistant-core
 └─── custom_components/
-     └─── vicente_energy/ # VE souce files here
+     └─── vicente_energy/ # VE source files here
 └─── tests/
      └─── components/ # VE test files here
           └─── vicente_enegy/ # VE test files here
