@@ -1,5 +1,7 @@
 from homeassistant.core import HomeAssistant
-from .service import VEService, VEEntityStateChangeHandler
+
+from .service import VEEntityStateChangeHandler, VEService
+
 
 class BatteryService(VEService):
     def __init__(self, hass: HomeAssistant, entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:

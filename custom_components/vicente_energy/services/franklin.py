@@ -27,7 +27,7 @@ class FranklinBatteryService(BatteryService):
 
         if self._battery_soc == value:
             return False
-            
+
         self._battery_soc = value
         _LOGGER.debug("Franklin SOC updated: %.1f%%", value)
         return True
@@ -38,10 +38,10 @@ class FranklinBatteryService(BatteryService):
         except ValueError:
             _LOGGER.warning("Failed to parse Franklin charge energy: %s", new_state.state)
             return False
-        
+
         if self._today_charge_kwh == value:
             return False
-            
+
         self._today_charge_kwh = value
         _LOGGER.debug("Today's Franklin charge updated: %.2f kWh", value)
         return True
@@ -52,10 +52,10 @@ class FranklinBatteryService(BatteryService):
         except ValueError:
             _LOGGER.warning("Failed to parse Franklin discharge energy: %s", new_state.state)
             return False
-            
+
         if self._today_discharge_kwh == value:
             return False
-            
+
         self._today_discharge_kwh = value
         _LOGGER.debug("Today's Franklin discharge updated: %.2f kWh", value)
         return True
@@ -78,7 +78,7 @@ class FranklinSolarService(SolarService):
 
             if self._now_production_kw == value:
                 return False
-                
+
         self._now_production_kw = value
         _LOGGER.debug("Franklin production now updated: %.2f", value)
         return True
@@ -89,10 +89,10 @@ class FranklinSolarService(SolarService):
         except ValueError:
             _LOGGER.warning("Failed to parse Franklin production today energy: %s", new_state.state)
             return False
-        
+
         if self._today_production_kwh == value:
             return False
-            
+
         self._today_production_kwh = value
         _LOGGER.debug("Today's Franklin production today updated: %.2f kWh", value)
         return True
@@ -113,10 +113,10 @@ class FranklinGridService(GridService):
         except ValueError:
             _LOGGER.warning("Failed to parse Franklin export today from state: %s", new_state.state)
             return False
-            
+
         if self._today_export_kwh == value:
             return False
-            
+
         self._today_export_kwh = value
         _LOGGER.debug("Franklin export today now updated: %.2f", value)
         return True
@@ -127,10 +127,10 @@ class FranklinGridService(GridService):
         except ValueError:
             _LOGGER.warning("Failed to parse Franklin import today from state: %s", new_state.state)
             return False
-            
+
         if self._today_import_kwh == value:
             return False
-        
+
         self._today_import_kwh = value
         _LOGGER.debug("Franklin import today now updated: %.2f", value)
         return True

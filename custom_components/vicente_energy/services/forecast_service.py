@@ -1,4 +1,5 @@
-from .service import VEService, VEEntityStateChangeHandler
+from .service import VEEntityStateChangeHandler, VEService
+
 
 class ForecastService(VEService):
     def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
@@ -20,12 +21,12 @@ class ForecastService(VEService):
     async def get_this_hour_production_kwh(self) -> float:
         current_hour = datetime.now().hour  # 0 through 23
         return self._get_today_hour_production_kwh(current_hour)
-        
+
     async def get_next_hour_production_kwh(self) -> float:
         current_hour = datetime.now().hour  # 0 through 23
-        if (current_hour is 23):
+        if (current_hour == 23):
             return self._get_tomorrow_hour_production_kwh(0)
-            
+
         return self._get_today_hour_production_kwh(current_hour+1)
 
     @abstractmethod

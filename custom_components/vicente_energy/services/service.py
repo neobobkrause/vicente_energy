@@ -2,8 +2,7 @@ from abc import ABC
 from collections.abc import Callable
 from typing import Optional
 
-from homeassistant.core import HomeAssistant
-from homeassistant.core import State
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.event import async_track_state_change
 
 VEEntityStateChangeHandler = Callable[[str, State, State], bool]
@@ -41,7 +40,7 @@ class VEService(ABC):
     async def _handle_state_change(self, entity_id: str, old_state: State | None, new_state: State | None) -> None:
         if old_state is None or new_state is None:
             return
-            
+
         if new_state.state == old_state.state:
             return
 

@@ -50,7 +50,7 @@ class ForecastSolarService(ForecastService):
 
     async def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
         return self._tomorrow_hourly_production_kwh[hour]
-        
+
     def _handle_current_hour_change(self, entity_id, old_state, new_state) -> bool:
         try:
             current_hour = datetime.now().hour  # 0 through 23
@@ -61,7 +61,7 @@ class ForecastSolarService(ForecastService):
 
         if self._today_hourly_production_kwh[current_hour] == value:
             return False
-            
+
         self._today_hourly_production_kwh[current_hour] = value
         _LOGGER.debug("Forecast.Solar current hour forecast updated: %.2f", value)
 
@@ -83,7 +83,7 @@ class ForecastSolarService(ForecastService):
             if (_today_hourly_production_kwh[current_hour+1] == value):
                 return false
             self._today_hourly_production_kwh[current_hour+1] = value
-            
+
         _LOGGER.debug("Forecast.Solar next hour forecast updated: %.2f", value)
         return True
 
@@ -96,7 +96,7 @@ class ForecastSolarService(ForecastService):
 
         if self._now_production_kw == value:
             return False
-        
+
         self._now_production_kw = value
         _LOGGER.debug("Forecast.Solar production now updated: %.2f", value)
         return True
@@ -110,7 +110,7 @@ class ForecastSolarService(ForecastService):
 
         if self._today_production_kwh == value:
             return False
-                
+
         self._today_production_kwh = value
         _LOGGER.debug("Forecast.Solar production today updated: %.2f", value)
         return True
@@ -124,7 +124,7 @@ class ForecastSolarService(ForecastService):
 
             if self._tomorrow_production_kwh == value:
                 return False
-                
+
         self._tomorrow_production_kwh = value
         _LOGGER.debug("Forecast.Solar production now updated: %.2f", value)
         return True

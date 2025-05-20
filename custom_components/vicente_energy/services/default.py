@@ -1,10 +1,10 @@
-import logging
 from typing import Optional
 
 from homeassistant.core import HomeAssistant
+
 from .battery_service import BatteryService
-from .service import VEEntityStateChangeHandler
 from .solar_service import SolarService
+
 
 class DefaultChargerService(EVChargerService):
     def __init__(self, hass: Optional[HomeAssistant]) -> None:

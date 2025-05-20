@@ -1,4 +1,5 @@
-from .service import VEService, VEEntityStateChangeHandler
+from .service import VEEntityStateChangeHandler, VEService
+
 
 class GridService(VEService):
     def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
