@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vicente Energy Configuration",
+        "description": "Configure your EV charging strategy.",
+        "data": {
+          "solar_power_entity": "Solar Power Sensor",
+          "solar_forecast_entities": "Solar Forecast Sensors (comma-separated)",
+          "battery_soc_entity": "Battery SOC Sensor",
+          "house_load_entity": "House Load Sensor",
+          "charger_power_entity": "EV Charger Power Sensor",
+          "inverter_on_entity": "Inverter On Binary Sensor",
+          "battery_capacity_kwh": "Battery Capacity (kWh)",
+          "reserve_soc_pct": "Reserve SOC (%)",
+          "storage_efficiency": "Storage Efficiency",
+          "max_charger_power_kw": "Max Charger Power (kW)",
+          "session_learning_alpha": "Session Learning Rate (α)",
+          "budget_update_interval_hours": "Budget Update Interval (h)",
+          "update_interval_minutes": "Control Update Interval (min)"
+        }
+      }
+    }
+  },
+  "title": "Vicente Energy"
+}
