@@ -1,15 +1,21 @@
+"""Adapter that provides solar forecast data to the estimator."""
+
 import logging
 
 _LOGGER = logging.getLogger(__name__)
 
 class SolarForecastAdapter:
+    """Fetch and correct solar forecast data from sensors or services."""
+
     def __init__(self, hass, forecast_entities, state_manager, service_manager=None):
+        """Initialize with Home Assistant objects and configuration."""
         self.hass = hass
         self.state = state_manager
         self.service_manager = service_manager
         self._forecast_entities = list(forecast_entities) if forecast_entities is not None else []
 
     async def get_raw_forecast(self):
+        """Return a list of forecast values from configured sources."""
         raw_forecast = []
         # If an external forecast service is configured, try that first
         if self.service_manager and getattr(self.service_manager, "forecast_service", None):
@@ -40,6 +46,7 @@ class SolarForecastAdapter:
         return raw_forecast
 
     async def get_corrected_forecast(self):
+        """Return forecast adjusted by learned solar bias."""
         raw_forecast = await self.get_raw_forecast()
         bias = self.state.get_solar_bias()
         corrected = [max(f * (1 + bias), 0.0) for f in raw_forecast]

@@ -1,3 +1,5 @@
+"""Service wrapper for Solcast solar forecast sensors."""
+
 import logging
 
 from .forecast_service import ForecastService
@@ -5,6 +7,8 @@ from .forecast_service import ForecastService
 _LOGGER = logging.getLogger(__name__)
 
 class SolcastService(ForecastService):
+    """Use Solcast sensors to provide forecast data."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         self._today_hourly_production_kwh: Optional[List[float]] = None
         self._tomorrow_hourly_production_kwh: Optional[List[float]] = None

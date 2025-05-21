@@ -1,3 +1,5 @@
+"""Fallback service implementations used when no real service is configured."""
+
 from typing import Optional
 
 from homeassistant.core import HomeAssistant
@@ -7,6 +9,8 @@ from .solar_service import SolarService
 
 
 class DefaultChargerService(EVChargerService):
+    """Simple charger service that stores power values locally."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         super().__init__(hass, None)
 
@@ -17,14 +21,20 @@ class DefaultChargerService(EVChargerService):
         self._charging_power_kw = power_kw
 
 class DefaultBatteryService(BatteryService):
+    """Battery service with no external API."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         super().__init__(hass, None)
 
 class DefaultSolarService(SolarService):
+    """Solar production service returning zeros."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         super().__init__(hass, None)
 
 class DefaultGridService(GridService):
+    """Basic grid service storing latest readings only."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         super().__init__(hass, None)
 

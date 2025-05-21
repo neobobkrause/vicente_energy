@@ -1,9 +1,14 @@
+"""Charging power and budget estimation utilities."""
+
 from .const import CONF_SESSION_LEARNING_ALPHA
 from .models import Forecasts, Signals
 
 
 class ChargeEstimator:
+    """Estimate charging budgets and power levels."""
+
     def __init__(self, params: dict, state_manager):
+        """Store configuration parameters and the state manager."""
         self._params = params
         self._state_manager = state_manager
 
