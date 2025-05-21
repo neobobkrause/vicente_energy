@@ -1,3 +1,5 @@
+"""ChargePoint EV charger service implementation."""
+
 import logging
 from typing import Optional
 
@@ -25,7 +27,10 @@ CHARGEPOINT_STATE_MAP = {
 _LOGGER = logging.getLogger(__name__)
 
 class ChargepointEVChargerService(EVChargerService):
+    """Interact with a ChargePoint charger via Home Assistant sensors."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
+        """Set up entity handlers for ChargePoint sensors."""
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.cph25_power_output": self._handle_power_change,
@@ -35,6 +40,7 @@ class ChargepointEVChargerService(EVChargerService):
         self._max_charging_power_amps = 32
 
     async def set_charging_power_amps(self, power_amps: int) -> None:
+        """Set charging current in amps via Home Assistant service."""
         _LOGGER.debug("Setting charging power to %.2f kW (%.1f A)", convert_amps_to_kw(power_amps, self._voltage), power_amps)
 
         try:
@@ -52,10 +58,12 @@ class ChargepointEVChargerService(EVChargerService):
             _LOGGER.debug("Unable to change Wallbox charging power value: %.2f kW", power_amps)
 
     async def set_charging_power_kw(self, power_kw: float) -> None:
+        """Set charging power in kW via helper that converts to amps."""
         await self.set_charging_power_amps(convert_kw_to_amps(power_kw, self._voltage))
 
 
     def _handle_charger_state_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+        """Handle updates to the charger state sensor."""
         try:
             mapped = CHARGEPOINT_STATE_MAP.get(new_state.state.lower(), EVChargerState.CHARGER_UNKNOWN)
         except ValueError:
@@ -70,6 +78,7 @@ class ChargepointEVChargerService(EVChargerService):
         return True
 
     def _handle_power_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+        """Handle updates to the charging power sensor."""
         try:
             value = convert_amps_to_kw(int(new_state.state), self._voltage)
         except ValueError:

@@ -1,3 +1,5 @@
+"""Configuration and options flow handlers for Vicente Energy."""
+
 import logging
 import voluptuous as vol
 
@@ -44,6 +46,7 @@ class VicenteEnergyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_user(user_input=import_config)
 
     async def async_step_user(self, user_input=None) -> FlowResult:
+        """Handle the initial step of the config flow."""
         if user_input is not None:
             # Map friendly names back to internal domain names
             reverse_name_map = self.hass.data["vicente_energy_reverse_map"]
@@ -136,6 +139,7 @@ class VicenteEnergyOptionsFlow(config_entries.OptionsFlow):
         self.reverse_name_map = {}
 
     async def async_step_init(self, user_input=None):
+        """Handle the first step of the options flow."""
         if user_input is not None:
             # Only remap fields corresponding to service types
             service_keys = {stype.value for stype in ServiceType}
@@ -270,6 +274,7 @@ class VicenteEnergyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_user(user_input=import_config)
 
     async def async_step_user(self, user_input=None) -> FlowResult:
+        """Process user step in duplicated flow block."""
         if user_input is not None:
             # Map friendly names back to internal domain names
             reverse_name_map = self.hass.data["vicente_energy_reverse_map"]
@@ -362,6 +367,7 @@ class VicenteEnergyOptionsFlow(config_entries.OptionsFlow):
         self.reverse_name_map = {}
 
     async def async_step_init(self, user_input=None):
+        """Handle the first step of the options flow."""
         if user_input is not None:
             # Only remap fields corresponding to service types
             service_keys = {stype.value for stype in ServiceType}

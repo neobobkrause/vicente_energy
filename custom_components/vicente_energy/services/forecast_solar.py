@@ -1,3 +1,5 @@
+"""Service wrapper for the Forecast.Solar integration."""
+
 import asyncio
 import logging
 
@@ -6,6 +8,8 @@ from .forecast_service import ForecastService
 _LOGGER = logging.getLogger(__name__)
 
 class ForecastSolarService(ForecastService):
+    """Handle Forecast.Solar sensor values."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         self._today_hourly_production_kwh: List[float] = [0.0] * 24
         self._tomorrow_hourly_production_kwh: List[float] = [0.0] * 24
