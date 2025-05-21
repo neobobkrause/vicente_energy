@@ -1,111 +1,75 @@
 """Create and manage external service instances."""
 
 import logging
-
-_LOGGER = logging.getLogger(__name__)
 import asyncio
 
-from .solcast_service import SolcastService
-from .wallbox_service import WallboxEVChargerService
+from homeassistant.core import HomeAssistant
 
+from .__init__ import SERVICE_CLASS_MAP, ServiceType
+from .service import VEEntityStateChangeHandler, VEService
+
+_LOGGER = logging.getLogger(__name__)
 
 class ServiceManager:
-    def __init__(self, hass, forecast_type: str = "none", charger_type: str = "none"):
-        """Initialize the ServiceManager with specified service types."""
-        self.hass = hass
-        self.forecast_type = forecast_type
-        self.charger_type = charger_type
-        self.forecast_service = None
-        self.charger_service = None
-        # Instantiate forecast service if configured
-        if forecast_type and forecast_type.lower() != "none":
-            try:
-                if forecast_type.lower() == "solcast":
-                    self.forecast_service = SolcastService(hass)
-                else:
-                    raise ValueError(f"Unknown forecast service type: {forecast_type}")
-            except Exception as e:
-                _LOGGER.error("Failed to initialize forecast service '%s': %s", forecast_type, e)
-                self.forecast_service = None
-        # Instantiate EV charger service if configured
-        if charger_type and charger_type.lower() != "none":
-            try:
-                if charger_type.lower() == "wallbox":
-                    self.charger_service = WallboxEVChargerService(hass)
-                else:
-                    raise ValueError(f"Unknown charger service type: {charger_type}")
-            except Exception as e:
-                _LOGGER.error("Failed to initialize charger service '%s': %s", charger_type, e)
-                self.charger_service = None
+    def __init__(self, hass: HomeAssistant, service_ids: dict[str, str]):
+        """Initialize the ServiceManager with the named service types."""
+        self._hass = hass
+        self._services: dict[str, VEService] = {}
 
+        self.update_services(service_ids, False)
+
+        _LOGGER.debug(f"ServiceManager initialized with services: {self._services}")
 
     async def connect_services(self):
         """Connect to external services asynchronously (if any)."""
-        tasks = []
-        if self.forecast_service:
-            tasks.append(self.forecast_service.connect())
-        if self.charger_service:
-            tasks.append(self.charger_service.connect())
-        if tasks:
-            await asyncio.gather(*tasks)
+        tasks = [service.connect() for service in self._services.values()]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
+        for service_type, result in zip(self._services.keys(), results):
+            if isinstance(result, Exception):
+                _LOGGER.error(f"Service {service_type} failed to connect: {result}")
+            else:
+                _LOGGER.debug(f"Service {service_type} connected successfully")
 
-    def update_services(self, forecast_type: str, charger_type: str):
+    def update_services(self, service_ids: dict[str, str], connect: bool = True):
         """Dynamically update the service types and reinitialize services."""
-        _LOGGER = logging.getLogger(__name__)
-        # Update forecast service if changed
-        if forecast_type.lower() != (self.forecast_type.lower() if self.forecast_type else "none"):
-            if self.forecast_service:
-                _LOGGER.info("Shutting down forecast service: %s", self.forecast_type)
-            self.forecast_type = forecast_type
-            self.forecast_service = None
-            if forecast_type.lower() != "none":
-                try:
-                    if forecast_type.lower() == "solcast":
-                        self.forecast_service = SolcastService(self.hass)
-                    else:
-                        raise ValueError(f"Unknown forecast service type: {forecast_type}")
-                except Exception as e:
-                    _LOGGER.error("Failed to initialize forecast service '%s': %s", forecast_type, e)
-                    self.forecast_service = None
-            if self.forecast_service:
-                # Start connection for new service
-                self.hass.loop.create_task(self.forecast_service.connect())
-        # Update charger service if changed
-        if charger_type.lower() != (self.charger_type.lower() if self.charger_type else "none"):
-            if self.charger_service:
-                _LOGGER.info("Shutting down charger service: %s", self.charger_type)
-            self.charger_type = charger_type
-            self.charger_service = None
-            if charger_type.lower() != "none":
-                try:
-                    if charger_type.lower() == "wallbox":
-                        self.charger_service = WallboxEVChargerService(self.hass)
-                    else:
-                        raise ValueError(f"Unknown charger service type: {charger_type}")
-                except Exception as e:
-                    _LOGGER.error("Failed to initialize charger service '%s': %s", charger_type, e)
-                    self.charger_service = None
-            if self.charger_service:
-                self.hass.loop.create_task(self.charger_service.connect())
-
-    async def get_forecast(self):
-        if not self.forecast_service:
-            return {}  # No external service, forecast will come from sensors
-        return await self.forecast_service.get_forecast()
+        # Extract service types from the service_ids dictionary
+        for service_type, service_name in service_ids.items():
+            if service_name != self._services.get(service_type):
+                # Get the valid service class mapping for this service type
+                service_type_enum = ServiceType(service_type)
+                valid_services = SERVICE_CLASS_MAP.get(service_type_enum)
+                if not valid_services:
+                    raise ValueError(f"No services defined for service type '{service_type}'")
 
 
-    async def get_charger_state(self):
-        if not self.charger_service:
-            return {}  # No external service, charger state from sensors
-        return await self.charger_service.get_charger_state()
+                # Get the service class for the provided service name
+                service_class = valid_services.get(service_name)
+                if not service_class:
+                    raise ValueError(
+                        f"Service '{service_name}' is not valid for service type '{service_type}'. "
+                        f"Valid options: {list(valid_services.keys())}"
+                    )
 
+                # Nothing to change if the existing service is the name as the new one
+                existing_service = self._services.get(service_type)
+                if existing_service is None or service_class != existing_service.__name__:
+                    # Instantiate and store the service instance
+                    self._services[service_type] = service_class()
 
-    def register_forecast_callback(self, cb):
-        if self.forecast_service:
-            self.forecast_service.register_callback(cb)
+                    # Optionally have the service instance connect
+                    if connect:
+                        service_class.connect()
 
+    async def get_service(self, service_type: ServiceType) -> VEService:
+        service = self._services.get(service_type)
+        if not service:
+            raise ValueError(
+                f"Service type '{service_type}' is not valid'. "
+                f"Valid options: {list(self._services.keys())}"
+            )
+        return service
 
-    def register_charger_callback(self, cb):
-        if self.charger_service:
-            self.charger_service.register_callback(cb)
+    def register_service_callback(self, service_type: ServiceType, cb: VEEntityStateChangeHandler):
+        service: VEService = self.get_service(service_type)
+        service.register_callback(cb)

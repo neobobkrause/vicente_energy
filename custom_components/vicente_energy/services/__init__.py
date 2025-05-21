@@ -5,24 +5,24 @@
 
 from enum import StrEnum, auto
 
-from .services.chargepoint import ChargepointEVChargerService
-from .services.defaults import (
+from .chargepoint import ChargepointEVChargerService
+from .default import (
     DefaultBatteryService,
     DefaultEVChargerService,
     DefaultForecastService,
     DefaultGridService,
     DefaultSolarService,
 )
-from .services.forecast_solar import ForecastSolarService
-from .services.franklin import (
+from .forecast_solar import ForecastSolarService
+from .franklin import (
     FranklinBatteryService,
     FranklinGridService,
     FranklinSolarService,
 )
-from .services.solaredge import SolarEdgeSolarService
-from .services.solcast import SolcastService
-from .services.tesla import PowerwallBatteryService
-from .services.wallbox import WallboxEVChargerService
+from .solaredge import SolarEdgeSolarService
+from .solcast import SolcastService
+from .tesla import PowerwallBatteryService
+from .wallbox import WallboxEVChargerService
 
 
 class ServiceType(StrEnum):
@@ -42,7 +42,7 @@ SERVICE_CLASS_MAP = {
     ServiceType.BATTERY_SERVICE: {
         "franklin": FranklinBatteryService,
         "powerwall": PowerwallBatteryService,
-        "powerwall": DefaultBatteryService,
+        "default": DefaultBatteryService,
     },
     ServiceType.SOLAR_SERVICE: {
         "franklin": FranklinSolarService,
@@ -59,4 +59,3 @@ SERVICE_CLASS_MAP = {
         "default": DefaultForecastService,
     },
 }
-

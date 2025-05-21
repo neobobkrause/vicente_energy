@@ -12,10 +12,12 @@ VEEntityStateChangeHandler = Callable[[str, State, State], bool]
 class VEService(ABC):
     """Base service class that manages callbacks and entity tracking."""
 
-    def __init__(self, hass: Optional[HomeAssistant], entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:
+    def __init__(self, hass: HomeAssistant,
+                 entity_handlers: Optional[dict[str, VEEntityStateChangeHandler]]) -> None:
         """Store Home Assistant instance and entity handlers."""
-        self._hass = hass
-        self._entity_handlers: dict[str, VEEntityStateChangeHandler] = entity_handlers  # Maps entity_id → handler
+        self._hass: HomeAssistant = hass
+        self._entity_handlers: Optional[dict[str, VEEntityStateChangeHandler]]\
+            = entity_handlers  # Maps entity_id → handler
         self._callbacks: list[VEEntityStateChangeHandler] = []
         self._unsubs: list[Callable[[], None]] = []
 
@@ -29,11 +31,12 @@ class VEService(ABC):
             unsub()
         self._unsubs.clear()
 
-    async def set_handler_map(self, entity_handlers: dict[str, VEEntityStateChangeHandler]):
+    async def set_handler_map(self,
+                              entity_handlers: Optional[dict[str, VEEntityStateChangeHandler]]):
         """Subscribe to state changes for the given entity map."""
         self._entity_handlers = entity_handlers  # Maps entity_id → handler
 
-        if (self._entity_handlers is not None):
+        if self._entity_handlers is not None:
             for entity_id in self._entity_handlers:
                 unsub = async_track_state_change(
                     self._hass,
@@ -46,7 +49,9 @@ class VEService(ABC):
         """Add a callback for state change notifications."""
         self._callbacks.append(callback)
 
-    async def _handle_state_change(self, entity_id: str, old_state: State | None, new_state: State | None) -> None:
+    async def _handle_state_change(self,
+                                   entity_id: str, old_state: State | None,
+                                   new_state: State | None) -> None:
         """Internal callback for Home Assistant state change events."""
         if old_state is None or new_state is None:
             return
@@ -55,7 +60,7 @@ class VEService(ABC):
             return
 
         # 🧠 Delegate update to the specific entity handler
-        if (self._entity_handlers is not None):
+        if self._entity_handlers is not None:
             handler = self._entity_handlers.get(entity_id)
             if handler and handler(entity_id, old_state, new_state):
                 # Notify external subscribers

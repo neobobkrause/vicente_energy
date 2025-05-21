@@ -31,7 +31,8 @@ def convert_amps_to_kw(power_a: float, voltage: int = DEFAULT_CHARGER_VOLTAGE) -
 class EVChargerService(VEService):
     """Common functionality for EV charger services."""
 
-    def __init__(self, hass: Optional[HomeAssistant], entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:
+    def __init__(self, hass: HomeAssistant,
+                 entity_handlers: Optional[dict[str, VEEntityStateChangeHandler]] = None) -> None:
         """Initialize default charger state."""
         self._charger_state = EVChargerState.CHARGER_UNKNOWN
         self._voltage: int = DEFAULT_CHARGER_VOLTAGE

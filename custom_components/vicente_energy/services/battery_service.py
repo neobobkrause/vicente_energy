@@ -1,5 +1,6 @@
 """Abstract battery storage service."""
 
+from typing import Optional
 from homeassistant.core import HomeAssistant
 
 from .service import VEEntityStateChangeHandler, VEService
@@ -8,7 +9,8 @@ from .service import VEEntityStateChangeHandler, VEService
 class BatteryService(VEService):
     """Base class for battery system integrations."""
 
-    def __init__(self, hass: HomeAssistant, entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:
+    def __init__(self, hass: HomeAssistant,
+                 entity_handlers: Optional[dict[str, VEEntityStateChangeHandler]] = None) -> None:
         """Initialize default battery state."""
         self._storage_capacity_kwh: float = 0.0
         self._battery_soc: float = 0.0  # 0–100

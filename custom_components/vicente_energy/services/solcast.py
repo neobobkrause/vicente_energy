@@ -1,7 +1,11 @@
 """Service wrapper for Solcast solar forecast sensors."""
 
 import logging
+from typing import List, Optional, cast
 
+from homeassistant.core import HomeAssistant, State
+
+from .service import VEEntityStateChangeHandler
 from .forecast_service import ForecastService
 
 _LOGGER = logging.getLogger(__name__)
@@ -9,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 class SolcastService(ForecastService):
     """Use Solcast sensors to provide forecast data."""
 
-    def __init__(self, hass: Optional[HomeAssistant]) -> None:
+    def __init__(self, hass: HomeAssistant) -> None:
         self._today_hourly_production_kwh: Optional[List[float]] = None
         self._tomorrow_hourly_production_kwh: Optional[List[float]] = None
 
@@ -23,68 +27,62 @@ class SolcastService(ForecastService):
 
     async def connect(self):
         await super().connect()
-        self.get_today_production_kwh()
-        self.get_tomorrow_production_kwh()
+        await self.get_today_production_kwh()
+        await self.get_tomorrow_production_kwh()
 
     async def get_today_production_kwh(self) -> float:
-        if len(self._today_hourly_production_kwh) != 24:
-            self._get_today_hour_production_kwh(0)
+        if self._today_hourly_production_kwh is None or len(self._today_hourly_production_kwh) != 24:
+            await self._get_today_hour_production_kwh(0)
 
-        return _today_production_kwh
+        return self._today_production_kwh
 
     async def get_tomorrow_production_kwh(self) -> float:
-        if len(self._tomorrow_hourly_production_kwh) != 24:
-            self._get_today_hour_production_kwh(0)
+        if self._tomorrow_hourly_production_kwh is None or len(self._tomorrow_hourly_production_kwh) != 24:
+            await self._get_today_hour_production_kwh(0)
 
-        return _tomorrow_production_kwh
+        return self._tomorrow_production_kwh
 
     async def _get_today_hour_production_kwh(self, hour: int) -> float:
-        if len(self._today_hourly_production_kwh) != 24:
-            state = hass.states.get("sensor.solcast_pv_forecast_forecast_today")
+        if self._today_hourly_production_kwh is None or len(self._today_hourly_production_kwh) != 24:
+            state = self._hass.states.get("sensor.solcast_pv_forecast_forecast_today")
             self._today_hourly_production_kwh = self._get_hourly_production_forecast(state)
 
-            total: float = 0.0
-            for i in self._today_hourly_production_kwh:
-                total += self._today_hourly_production_kwh[i]
-            self._today_production_kwh = total
+        self._today_production_kwh = sum(cast(List[float], self._today_hourly_production_kwh))
 
         return self._today_hourly_production_kwh[hour]
 
     async def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
-        if len(self._tomorrow_hourly_production_kwh) != 24:
-            state = hass.states.get("sensor.solcast_pv_forecast_forecast_tomorrow")
-            self._today_hourly_production_kwh = self._get_hourly_production_forecast(state)
+        if self._tomorrow_hourly_production_kwh is None or len(self._tomorrow_hourly_production_kwh) != 24:
+            state = self._hass.states.get("sensor.solcast_pv_forecast_forecast_tomorrow")
+            self._tomorrow_hourly_production_kwh = self._get_hourly_production_forecast(state)
 
-            total: float = 0.0
-            for i in self._tomorrow_hourly_production_kwh:
-                total += self._tomorrow_hourly_production_kwh[i]
-            self._tomorrow_production_kwh = total
+        self._tomorrow_production_kwh = sum(cast(List[float], self._tomorrow_hourly_production_kwh))
 
         return self._tomorrow_hourly_production_kwh[hour]
 
-    def _handle_today_production_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_production_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
         try:
-            values = self._get_hourly_production_forecast(new_state)
+            self._today_hourly_production_kwh = self._get_hourly_production_forecast(new_state)
         except ValueError:
             _LOGGER.warning("Failed to parse Forecast.Solar production today from state: %s", new_state.state)
             return False
 
-        self._today_production_kwh = values
+        self._today_production_kwh = sum(cast(List[float], self._today_hourly_production_kwh))
         _LOGGER.debug("Forecast.Solar production today now updated")
         return True
 
-    def _handle_tomorrow_production_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_tomorrow_production_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
         try:
-            values = self._get_hourly_production_forecast(new_state)
+            self._tomorrow_hourly_production_kwh = self._get_hourly_production_forecast(new_state)
         except ValueError:
             _LOGGER.warning("Failed to parse Forecast.Solar production tomorrow from state: %s", new_state.state)
             return False
 
-        self._tomorrow_hourly_production_kwh = values
+        self._tomorrow_production_kwh = sum(cast(List[float], self._tomorrow_hourly_production_kwh))
         _LOGGER.debug("Forecast.Solar production tomorrow now updated")
         return True
 
-    def _handle_now_production_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_now_production_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -98,9 +96,9 @@ class SolcastService(ForecastService):
         _LOGGER.debug("Forecast.Solar production now updated: %.2f", value)
         return True
 
-    async def _get_hourly_production_forecast(self, state) -> List[float]:
+    def _get_hourly_production_forecast(self, state) -> List[float]:
         if state is None or state.attributes.get("detailedForecast") is None:
-            raise ValueError(f"Sensor {entity_id} or its 'detailedForecast' attribute is unavailable.")
+            raise ValueError("The detailedForecast sensor attribute is unavailable.")
 
         detailed_forecast = state.attributes["detailedForecast"]
 

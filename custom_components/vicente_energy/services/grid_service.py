@@ -1,12 +1,14 @@
 """Base class for grid energy service providers."""
 
+from typing import Optional
 from .service import VEEntityStateChangeHandler, VEService
 
 
 class GridService(VEService):
     """Represent grid import/export measurements."""
 
-    def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
+    def __init__(self, hass,
+                 entity_handlers: Optional[dict[str, VEEntityStateChangeHandler]] = None):
         """Initialize default state values."""
         self._today_export_kwh: float = 0.0
         self._today_import_kwh: float = 0.0
@@ -22,4 +24,3 @@ class GridService(VEService):
 
     async def get_now_home_load_kw(self) -> float:
         return self._now_home_load_kw
-
