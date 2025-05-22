@@ -45,9 +45,17 @@ class VEService(ABC):
                 )
                 self._unsubs.append(unsub)
 
-    def register_callback(self, callback: VEEntityStateChangeHandler):
+    def register_callback(self, callback: VEEntityStateChangeHandler) -> None:
         """Add a callback for state change notifications."""
         self._callbacks.append(callback)
+
+    def deregister_callback(self, callback: VEEntityStateChangeHandler) -> None:
+        """Deregister a previously registered callback."""
+        try:
+            self._callbacks.remove(callback)
+            _LOGGER.debug(f"Callback {callback.__name__} deregistered successfully.")
+        except ValueError:
+            _LOGGER.warning(f"Attempted to deregister non-existent callback {callback.__name__}.")
 
     async def _handle_state_change(self,
                                    entity_id: str, old_state: State | None,

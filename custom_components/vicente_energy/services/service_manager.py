@@ -11,14 +11,32 @@ from .service import VEEntityStateChangeHandler, VEService
 _LOGGER = logging.getLogger(__name__)
 
 class ServiceManager:
-    def __init__(self, hass: HomeAssistant, service_ids: dict[str, str]):
+    def __init__(self, hass: HomeAssistant, service_ids: dict[ServiceType, str]):
         """Initialize the ServiceManager with the named service types."""
         self._hass = hass
-        self._services: dict[str, VEService] = {}
+        self._services: dict[ServiceType, VEService] = {}
 
         self.update_services(service_ids, False)
 
-        _LOGGER.debug(f"ServiceManager initialized with services: {self._services}")
+        _LOGGER.debug("ServiceManager initialized with services: %s", self._services)
+
+    async def connect_service(self, service_type: ServiceType):
+        """Connect to external service."""
+        service = self._services.get(service_type)
+        if not service:
+            raise ValueError(f"No services defined for service type '{service_type}'")
+
+        await service.connect()
+        _LOGGER.debug("Service %s connected successfully", service_type)
+
+    async def disconnect_service(self, service_type: ServiceType):
+        """Disconnect to external service."""
+        service = self._services.get(service_type)
+        if not service:
+            raise ValueError(f"No services defined for service type '{service_type}'")
+
+        await service.disconnect()
+        _LOGGER.debug("Service %s disconnected successfully", service_type)
 
     async def connect_services(self):
         """Connect to external services asynchronously (if any)."""
@@ -27,11 +45,22 @@ class ServiceManager:
 
         for service_type, result in zip(self._services.keys(), results):
             if isinstance(result, Exception):
-                _LOGGER.error(f"Service {service_type} failed to connect: {result}")
+                _LOGGER.error("Service %s failed to connect: %s", service_type, result)
             else:
-                _LOGGER.debug(f"Service {service_type} connected successfully")
+                _LOGGER.debug("Service %s connected successfully", service_type)
 
-    def update_services(self, service_ids: dict[str, str], connect: bool = True):
+    async def disconnect_services(self):
+        """Disconnect external services asynchronously (if any)."""
+        tasks = [service.disconnect() for service in self._services.values()]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for service_type, result in zip(self._services.keys(), results):
+            if isinstance(result, Exception):
+                _LOGGER.error("Service %s failed to disconnect: %s", service_type, result)
+            else:
+                _LOGGER.debug("Service %s disconnected successfully", service_type)
+
+    def update_services(self, service_ids: dict[ServiceType, str], connect: bool = True):
         """Dynamically update the service types and reinitialize services."""
         # Extract service types from the service_ids dictionary
         for service_type, service_name in service_ids.items():
@@ -61,7 +90,7 @@ class ServiceManager:
                     if connect:
                         service_class.connect()
 
-    async def get_service(self, service_type: ServiceType) -> VEService:
+    def get_service(self, service_type: ServiceType) -> VEService:
         service = self._services.get(service_type)
         if not service:
             raise ValueError(
@@ -73,3 +102,8 @@ class ServiceManager:
     def register_service_callback(self, service_type: ServiceType, cb: VEEntityStateChangeHandler):
         service: VEService = self.get_service(service_type)
         service.register_callback(cb)
+
+    def deregister_service_callback(self, service_type: ServiceType,
+                                    cb: VEEntityStateChangeHandler):
+        service: VEService = self.get_service(service_type)
+        service.deregister_callback(cb)
