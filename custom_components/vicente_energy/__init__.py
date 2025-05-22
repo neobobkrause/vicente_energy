@@ -48,17 +48,19 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Vicente Energy from a config entry."""
-    ev_charger = entry.options.get(ServiceType.EV_CHARGER_SERVICE, entry.data.get(ServiceType.EV_CHARGER_SERVICE, "none"))
-    battery = entry.options.get(ServiceType.BATTERY_SERVICE, entry.data.get(ServiceType.BATTERY_SERVICE, "none"))
-    solar_production = entry.options.get(ServiceType.SOLAR_SERVICE, entry.data.get(ServiceType.SOLAR_SERVICE, "none"))
-    solar_forecast = entry.options.get(ServiceType.FORECAST_SERVICE, entry.data.get(ServiceType.FORECAST_SERVICE, "none"))
-    location_name = entry.options.get(CONF_LOCATION_NAME, entry.data.get(CONF_LOCATION_NAME, ""))
-
     state = StateManager(hass, entry.entry_id)
     await state.async_load()
     state.data[CONF_SESSION_LEARNING_ALPHA] = entry.options.get(CONF_SESSION_LEARNING_ALPHA, entry.data.get(CONF_SESSION_LEARNING_ALPHA, 0.1))
 
-    service_manager = ServiceManager(hass, solar_forecast, ev_charger)
+    service_ids: dict[ServiceType, str] = {}
+    service_ids.append(ServiceType.EV_CHARGER_SERVICE, entry.options.get(ServiceType.EV_CHARGER_SERVICE, entry.data.get(ServiceType.EV_CHARGER_SERVICE, "default")))
+    service_ids.append(ServiceType.BATTERY_SERVICE, entry.options.get(ServiceType.BATTERY_SERVICE, entry.data.get(ServiceType.BATTERY_SERVICE, "default")))
+    service_ids.append(ServiceType.SOLAR_SERVICE, entry.options.get(ServiceType.SOLAR_SERVICE, entry.data.get(ServiceType.SOLAR_SERVICE, "default")))
+    service_ids.append(ServiceType.FORECAST_SERVICE, entry.options.get(ServiceType.FORECAST_SERVICE, entry.data.get(ServiceType.FORECAST_SERVICE, "default")))
+    service_ids.append(ServiceType.GRID_SERVICE, entry.options.get(ServiceType.GRID_SERVICE, entry.data.get(ServiceType.GRID_SERVICE, "default")))
+    location_name = entry.options.get(CONF_LOCATION_NAME, entry.data.get(CONF_LOCATION_NAME, ""))
+
+    service_manager = ServiceManager(hass, service_ids)
     hass.loop.create_task(service_manager.connect_services())
 
     merged_conf = dict(entry.data)
