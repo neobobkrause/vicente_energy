@@ -41,22 +41,22 @@ class EVChargerService(VEService):
 
         super().__init__(hass, entity_handlers)
 
-    async def get_charger_state(self) -> EVChargerState:
+    def get_charger_state(self) -> EVChargerState:
         return self._charger_state
 
-    async def get_charging_power_amps(self) -> int:
+    def get_charging_power_amps(self) -> int:
         return convert_kw_to_amps(self._charging_power_kw, self._voltage)
 
-    async def get_charging_power_kw(self) -> float:
+    def get_charging_power_kw(self) -> float:
         return self._charging_power_kw
 
-    async def get_max_charging_power_kw(self) -> float:
+    def get_max_charging_power_kw(self) -> float:
         return convert_amps_to_kw(self._max_charging_power_amps, self._voltage)
 
-    async def get_max_charging_power_amps(self) -> int:
+    def get_max_charging_power_amps(self) -> int:
         return self._max_charging_power_amps
 
-    async def get_charger_voltage(self) -> int:
+    def get_charger_voltage(self) -> int:
         return self._voltage
 
     async def set_charger_voltage(self, voltage: int) -> None:

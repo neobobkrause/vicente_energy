@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "venv/bin/python",
+    "editor.formatOnSave": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.pylintArgs": [
+        "--load-plugins",
+        "pylint_per_file_ignores,hass_enforce_type_hints"
+    ]
+}

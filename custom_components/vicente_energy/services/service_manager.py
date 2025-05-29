@@ -16,8 +16,6 @@ class ServiceManager:
         self._hass = hass
         self._services: dict[ServiceType, VEService] = {}
 
-        self.update_services(service_ids, False)
-
         _LOGGER.debug("ServiceManager initialized with services: %s", self._services)
 
     async def connect_service(self, service_type: ServiceType):
@@ -60,7 +58,7 @@ class ServiceManager:
             else:
                 _LOGGER.debug("Service %s disconnected successfully", service_type)
 
-    def update_services(self, service_ids: dict[ServiceType, str], connect: bool = True):
+    async def update_services(self, service_ids: dict[ServiceType, str], connect: bool = True):
         """Dynamically update the service types and reinitialize services."""
         # Extract service types from the service_ids dictionary
         for service_type, service_name in service_ids.items():
@@ -82,13 +80,21 @@ class ServiceManager:
 
                 # Nothing to change if the existing service is the name as the new one
                 existing_service = self._services.get(service_type)
-                if existing_service is None or service_class != existing_service.__name__:
-                    # Instantiate and store the service instance
-                    self._services[service_type] = service_class()
+                if existing_service is not None and service_class == existing_service.__name__:
+                    return
 
-                    # Optionally have the service instance connect
-                    if connect:
-                        service_class.connect()
+                if existing_service is not None:
+                    for callback in existing_service._get_callbacks()[:]:  # pylint: disable=protected-access
+                        service_class.register_callback(callback)
+                        existing_service.deregister_callback(callback)
+                    await existing_service.disconnect()
+
+                # Instantiate and store the new service instance
+                self._services[service_type] = service_class()
+
+                # Optionally have the service instance connect
+                if connect:
+                    service_class.connect()
 
     def get_service(self, service_type: ServiceType) -> VEService:
         service = self._services.get(service_type)

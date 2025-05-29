@@ -22,7 +22,9 @@ class ForecastSolarService(ForecastService):
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.energy_current_hour": self._handle_current_hour_change,
             "sensor.energy_next_hour": self._handle_next_hour_change,
-            "sensor.power_production_now": self._handle_now_production_change,
+            "sensor.power_production_now": self._handle_current_production_change,
+            "sensor.energy_production_today_remaining":
+                self._handle_today_remaining_production_change,
             "sensor.energy_production_today": self._handle_today_production_change,
             "sensor.energy_production_tomorrow": self._handle_tomorrow_production_change,
         }
@@ -40,7 +42,7 @@ class ForecastSolarService(ForecastService):
             self._tomorrow_production_kwh = float(state.state)
 
             state = cast(State, self._hass.states.get("sensor.power_production_now"))
-            self._now_production_kw = float(state.state)
+            self._current_production_kw = float(state.state)
 
             current_hour = datetime.now().hour  # 0 through 23
             state = cast(State, self._hass.states.get("sensor.energy_current_hour"))
@@ -53,13 +55,13 @@ class ForecastSolarService(ForecastService):
         except ValueError:
             _LOGGER.warning("Failed to prime Forecast.Solar state: %s", state.state)
 
-    async def _get_today_hour_production_kwh(self, hour: int) -> float:
+    def _get_today_hour_production_kwh(self, hour: int) -> float:
         return self._today_hourly_production_kwh[hour]
 
-    async def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
+    def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
         return self._tomorrow_hourly_production_kwh[hour]
 
-    def _handle_current_hour_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_current_hour_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             current_hour = datetime.now().hour  # 0 through 23
             value = float(new_state.state)
@@ -76,7 +78,7 @@ class ForecastSolarService(ForecastService):
 
         return True
 
-    def _handle_next_hour_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_next_hour_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             current_hour = datetime.now().hour  # 0 through 23
             value = float(new_state.state)
@@ -97,7 +99,7 @@ class ForecastSolarService(ForecastService):
         _LOGGER.debug("Forecast.Solar next hour forecast updated: %.2f", value)
         return True
 
-    def _handle_now_production_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_current_production_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -105,14 +107,30 @@ class ForecastSolarService(ForecastService):
                             new_state.state)
             return False
 
-        if self._now_production_kw == value:
+        if self._current_production_kw == value:
             return False
 
-        self._now_production_kw = value
+        self._current_production_kw = value
         _LOGGER.debug("Forecast.Solar production now updated: %.2f", value)
         return True
 
-    def _handle_today_production_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_remaining_production_change(self, _entity_id, _old_state, new_state) -> bool:
+        try:
+            value = float(new_state.state)
+        except ValueError:
+            _LOGGER.warning(
+                "Failed to parse Forecast.Solar remaining production today from state: %s",
+                new_state.state)
+            return False
+
+        if self._today_remaining_production_kwh == value:
+            return False
+
+        self._today_remaining_production_kwh = value
+        _LOGGER.debug("Forecast.Solar remaining production today updated: %.2f", value)
+        return True
+
+    def _handle_today_production_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -127,7 +145,7 @@ class ForecastSolarService(ForecastService):
         _LOGGER.debug("Forecast.Solar production today updated: %.2f", value)
         return True
 
-    def _handle_tomorrow_production_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_tomorrow_production_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:

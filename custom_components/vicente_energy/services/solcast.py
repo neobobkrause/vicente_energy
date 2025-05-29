@@ -20,30 +20,36 @@ class SolcastService(ForecastService):
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.solcast_pv_forecast_forecast_today": self._handle_today_production_change,
+            "sensor.solcast_pv_forecast_forecast_remaining_today": 
+                self._handle_today_remaining_production_change,
             "sensor.solcast_pv_forecast_forecast_tomorrow": self._handle_tomorrow_production_change,
-            "sensor.solcast_pv_forecast_power_now": self._handle_now_production_change,
+            "sensor.solcast_pv_forecast_power_now": self._handle_current_production_change,
         }
         super().__init__(hass, handlers)
 
     async def connect(self):
         await super().connect()
-        await self.get_today_production_kwh()
-        await self.get_tomorrow_production_kwh()
+        self.get_today_remaining_production_kwh()
+        self.get_today_production_kwh()
+        self.get_tomorrow_production_kwh()
 
-    async def get_today_production_kwh(self) -> float:
-        if self._today_hourly_production_kwh is None or len(self._today_hourly_production_kwh) != 24:
-            await self._get_today_hour_production_kwh(0)
+    def get_today_production_kwh(self) -> float:
+        if self._today_hourly_production_kwh is None\
+            or len(self._today_hourly_production_kwh) != 24:
+            self._get_today_hour_production_kwh(0)
 
         return self._today_production_kwh
 
-    async def get_tomorrow_production_kwh(self) -> float:
-        if self._tomorrow_hourly_production_kwh is None or len(self._tomorrow_hourly_production_kwh) != 24:
-            await self._get_today_hour_production_kwh(0)
+    def get_tomorrow_production_kwh(self) -> float:
+        if self._tomorrow_hourly_production_kwh is None\
+            or len(self._tomorrow_hourly_production_kwh) != 24:
+            self._get_today_hour_production_kwh(0)
 
         return self._tomorrow_production_kwh
 
-    async def _get_today_hour_production_kwh(self, hour: int) -> float:
-        if self._today_hourly_production_kwh is None or len(self._today_hourly_production_kwh) != 24:
+    def _get_today_hour_production_kwh(self, hour: int) -> float:
+        if self._today_hourly_production_kwh is None\
+            or len(self._today_hourly_production_kwh) != 24:
             state = self._hass.states.get("sensor.solcast_pv_forecast_forecast_today")
             self._today_hourly_production_kwh = self._get_hourly_production_forecast(state)
 
@@ -51,8 +57,9 @@ class SolcastService(ForecastService):
 
         return self._today_hourly_production_kwh[hour]
 
-    async def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
-        if self._tomorrow_hourly_production_kwh is None or len(self._tomorrow_hourly_production_kwh) != 24:
+    def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
+        if self._tomorrow_hourly_production_kwh is None\
+            or len(self._tomorrow_hourly_production_kwh) != 24:
             state = self._hass.states.get("sensor.solcast_pv_forecast_forecast_tomorrow")
             self._tomorrow_hourly_production_kwh = self._get_hourly_production_forecast(state)
 
@@ -60,50 +67,84 @@ class SolcastService(ForecastService):
 
         return self._tomorrow_hourly_production_kwh[hour]
 
-    def _handle_today_production_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+    def _handle_today_remaining_production_change(self,
+                                                  _entity_id: str,
+                                                  _old_state: State,
+                                                  new_state: State) -> bool:
+        try:
+            value = float(new_state.state)
+        except ValueError:
+            _LOGGER.warning(
+                "Failed to parse Forecast.Solar remaining production today from state: %s",
+                new_state.state
+                )
+            return False
+
+        self._today_remaining_production_kwh = value
+        _LOGGER.debug("Forecast.Solar remaining production today now updated")
+        return True
+
+    def _handle_today_production_change(self,
+                                        _entity_id: str,
+                                        _old_state: State,
+                                        new_state: State) -> bool:
         try:
             self._today_hourly_production_kwh = self._get_hourly_production_forecast(new_state)
         except ValueError:
-            _LOGGER.warning("Failed to parse Forecast.Solar production today from state: %s", new_state.state)
+            _LOGGER.warning(
+                "Failed to parse Forecast.Solar production today from state: %s",
+                new_state.state
+                )
             return False
 
         self._today_production_kwh = sum(cast(List[float], self._today_hourly_production_kwh))
         _LOGGER.debug("Forecast.Solar production today now updated")
         return True
 
-    def _handle_tomorrow_production_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+    def _handle_tomorrow_production_change(self,
+                                           _entity_id: str,
+                                           _old_state: State,
+                                           new_state: State) -> bool:
         try:
             self._tomorrow_hourly_production_kwh = self._get_hourly_production_forecast(new_state)
         except ValueError:
-            _LOGGER.warning("Failed to parse Forecast.Solar production tomorrow from state: %s", new_state.state)
+            _LOGGER.warning(
+                "Failed to parse Forecast.Solar production tomorrow from state: %s",
+                new_state.state)
             return False
 
         self._tomorrow_production_kwh = sum(cast(List[float], self._tomorrow_hourly_production_kwh))
         _LOGGER.debug("Forecast.Solar production tomorrow now updated")
         return True
 
-    def _handle_now_production_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+    def _handle_current_production_change(self,
+                                          _entity_id: str,
+                                          _old_state: State,
+                                          new_state: State) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
-            _LOGGER.warning("Failed to parse Forecast.Solar production today from state: %s", new_state.state)
+            _LOGGER.warning(
+                "Failed to parse Forecast.Solar production today from state: %s",
+                new_state.state)
             return False
 
-        if self._now_production_kw == value:
+        if self._current_production_kw == value:
             return False
 
-        self._now_production_kw = value
+        self._current_production_kw = value
         _LOGGER.debug("Forecast.Solar production now updated: %.2f", value)
         return True
 
-    def _get_hourly_production_forecast(self, state) -> List[float]:
+    def _get_hourly_production_forecast(self, state: Optional[State]) -> List[float]:
         if state is None or state.attributes.get("detailedForecast") is None:
             raise ValueError("The detailedForecast sensor attribute is unavailable.")
 
         detailed_forecast = state.attributes["detailedForecast"]
 
         if len(detailed_forecast) < 48:
-            raise ValueError(f"Expected at least 48 forecast entries, got {len(detailed_forecast)}.")
+            raise ValueError(
+                f"Expected at least 48 forecast entries, got {len(detailed_forecast)}.")
 
         hourly_forecast = []
         for i in range(0, 48, 2):
@@ -113,4 +154,3 @@ class SolcastService(ForecastService):
             hourly_forecast.append(hourly_total)
 
         return hourly_forecast
-

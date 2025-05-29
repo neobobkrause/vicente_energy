@@ -1,7 +1,7 @@
 """Fallback service implementations used when no real service is configured."""
-from .forecast_service import ForecastService
 from homeassistant.core import HomeAssistant
 
+from .forecast_service import ForecastService
 from .grid_service import GridService
 from .ev_charger_service import EVChargerService, convert_amps_to_kw
 from .battery_service import BatteryService

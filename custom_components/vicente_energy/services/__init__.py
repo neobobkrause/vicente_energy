@@ -1,11 +1,11 @@
-
 """Expose available service classes and service type mappings."""
 
 # Explicitly import service classes for easy external access
 
 from enum import StrEnum, auto
 
-from .chargepoint import ChargepointEVChargerService
+from .budget_service import ChargingBudgetService
+from .charging_session_service import ChargingSessionService
 from .default import (
     DefaultBatteryService,
     DefaultEVChargerService,
@@ -13,6 +13,8 @@ from .default import (
     DefaultGridService,
     DefaultSolarService,
 )
+
+from .chargepoint import ChargepointEVChargerService
 from .forecast_solar import ForecastSolarService
 from .franklin import (
     FranklinBatteryService,
@@ -32,6 +34,8 @@ class ServiceType(StrEnum):
     SOLAR_SERVICE = auto()
     GRID_SERVICE = auto()
     FORECAST_SERVICE = auto()
+    BUDGET_SERVICE = auto()
+    CHARGING_SERVICE = auto()
 
 SERVICE_CLASS_MAP = {
     ServiceType.EV_CHARGER_SERVICE: {
@@ -57,5 +61,11 @@ SERVICE_CLASS_MAP = {
         "solcast": SolcastService,
         "forecast.solar": ForecastSolarService,
         "default": DefaultForecastService,
+    },
+    ServiceType.BUDGET_SERVICE: {
+        "default": ChargingBudgetService,
+    },
+    ServiceType.CHARGING_SERVICE: {
+        "default": ChargingSessionService,
     },
 }

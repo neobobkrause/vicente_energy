@@ -105,7 +105,7 @@ class WallboxEVChargerService(EVChargerService):
                       entity_id, old_state.state.lower(), new_state.state.lower(), mapped)
         return True
 
-    def _handle_power_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+    def _handle_power_change(self, _entity_id: str, _old_state: State, new_state: State) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:

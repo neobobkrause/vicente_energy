@@ -80,7 +80,7 @@ class ChargepointEVChargerService(EVChargerService):
                       entity_id, old_state.state.lower(), new_state.state.lower(), mapped)
         return True
 
-    def _handle_power_change(self, entity_id: str, old_state: State, new_state: State) -> bool:
+    def _handle_power_change(self, _entity_id: str, _old_state: State, new_state: State) -> bool:
         """Handle updates to the charging power sensor."""
         try:
             value = convert_amps_to_kw(int(new_state.state), self._voltage)

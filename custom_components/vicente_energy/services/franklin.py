@@ -14,6 +14,8 @@ class FranklinBatteryService(BatteryService):
     """Battery service for FranklinWH systems."""
 
     def __init__(self, hass: HomeAssistant) -> None:
+        self._battery_reserve: int = 20  # 0–100
+
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.franklinwh_state_of_charge": self._handle_soc_change,
@@ -22,7 +24,7 @@ class FranklinBatteryService(BatteryService):
         }
         super().__init__(hass, handlers)
 
-    def _handle_soc_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_soc_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -36,7 +38,7 @@ class FranklinBatteryService(BatteryService):
         _LOGGER.debug("Franklin SOC updated: %.1f%%", value)
         return True
 
-    def _handle_today_charge_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_charge_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -50,7 +52,7 @@ class FranklinBatteryService(BatteryService):
         _LOGGER.debug("Today's Franklin charge updated: %.2f kWh", value)
         return True
 
-    def _handle_today_discharge_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_discharge_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -70,12 +72,12 @@ class FranklinSolarService(SolarService):
     def __init__(self, hass: HomeAssistant) -> None:
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
-            "sensor.franklinwh_solar_energy": self._handle_now_change,
+            "sensor.franklinwh_solar_energy": self._handle_current_change,
             "sensor.franklinwh_solar_production": self._handle_today_change,
         }
         super().__init__(hass, handlers)
 
-    def _handle_now_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_current_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -83,14 +85,14 @@ class FranklinSolarService(SolarService):
                             new_state.state)
             return False
 
-        if self._now_production_kw == value:
+        if self._current_production_kw == value:
             return False
 
-        self._now_production_kw = value
+        self._current_production_kw = value
         _LOGGER.debug("Franklin production now updated: %.2f", value)
         return True
 
-    def _handle_today_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -112,11 +114,11 @@ class FranklinGridService(GridService):
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.franklinwh_grid_export": self._handle_today_export_change,
             "sensor.franklinwh_grid_import": self._handle_today_import_change,
-            "sensor.franklinwh_home_load": self._handle_now_home_load_change,
+            "sensor.franklinwh_home_load": self._handle_current_home_load_change,
         }
         super().__init__(hass, handlers)
 
-    def _handle_today_export_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_export_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -130,7 +132,7 @@ class FranklinGridService(GridService):
         _LOGGER.debug("Franklin export today now updated: %.2f", value)
         return True
 
-    def _handle_today_import_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_today_import_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
@@ -144,7 +146,7 @@ class FranklinGridService(GridService):
         _LOGGER.debug("Franklin import today now updated: %.2f", value)
         return True
 
-    def _handle_now_home_load_change(self, entity_id, old_state, new_state) -> bool:
+    def _handle_current_home_load_change(self, _entity_id, _old_state, new_state) -> bool:
         try:
             value = float(new_state.state)
         except ValueError:
