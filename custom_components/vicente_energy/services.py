@@ -1,6 +1,11 @@
 
+"""Home Assistant service registrations for Vicente Energy."""
+
+
 async def async_register_services(hass, domain, session_manager, state_manager):
+    """Register helper services for testing and maintenance."""
     async def handle_set_power(call):
+        """Set charger power level using the session manager."""
         power_kw = call.data.get("power_level_kw")
         if power_kw is not None:
             session_manager.set_power_level(power_kw)
@@ -8,6 +13,7 @@ async def async_register_services(hass, domain, session_manager, state_manager):
             await hass.helpers.entity_component.async_update_entity(f"sensor.{domain}_power_level")
 
     async def handle_reset_history(call):
+        """Clear stored biases and history."""
         # Reset all bias and history data
         state_manager.data["solar_bias"] = 0.0
         state_manager.data["load_bias"] = 0.0

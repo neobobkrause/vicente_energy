@@ -1,3 +1,5 @@
+"""Gather raw sensor signals for Vicente Energy calculations."""
+
 from homeassistant.core import HomeAssistant
 
 from .models import Signals
@@ -5,6 +7,8 @@ from .services.service_manager import ServiceManager
 
 
 class InputCollector:
+    """Collect sensor inputs and optional external service data."""
+
     def __init__(self, hass: HomeAssistant, *args,
                  solar_power_entity: str = None,
                  solar_forecast_entities: list = None,
@@ -18,6 +22,10 @@ class InputCollector:
                  battery_entity: str = None,
                  load_entity: str = None,
                  service_manager: ServiceManager = None):
+        """Initialize with entity IDs and optional service manager.
+
+        Legacy positional arguments are supported for backwards compatibility.
+        """
         # Legacy positional args mapping:
         if len(args) >= 5:
             # Map first 5 positional args to entity IDs
@@ -46,6 +54,7 @@ class InputCollector:
         self.service_manager = service_manager
 
     def get_signals(self) -> Signals:
+        """Return current Signals dataclass populated from sensors."""
         # Solar power
         sp = self.hass.states.get(self._solar_power_entity) if self._solar_power_entity else None
         solar_power = float(sp.state) if sp and hasattr(sp, "state") else 0.0

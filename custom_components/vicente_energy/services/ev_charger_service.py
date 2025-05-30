@@ -1,3 +1,5 @@
+"""Base classes and helpers for EV charger integrations."""
+
 from abc import abstractmethod
 from enum import StrEnum
 from typing import Optional
@@ -27,7 +29,10 @@ def convert_amps_to_kw(power_a: float, voltage: int = DEFAULT_CHARGER_VOLTAGE) -
     return (power_a * voltage)/ 1000
 
 class EVChargerService(VEService):
+    """Common functionality for EV charger services."""
+
     def __init__(self, hass: Optional[HomeAssistant], entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:
+        """Initialize default charger state."""
         self._charger_state = EVChargerState.CHARGER_UNKNOWN
         self._voltage: int = DEFAULT_CHARGER_VOLTAGE
         self._max_charging_power_amps: int = 0

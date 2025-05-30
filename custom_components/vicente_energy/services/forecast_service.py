@@ -1,8 +1,13 @@
+"""Base class for solar production forecast services."""
+
 from .service import VEEntityStateChangeHandler, VEService
 
 
 class ForecastService(VEService):
+    """Provide solar production forecasts."""
+
     def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
+        """Initialize forecast storage attributes."""
         self._today_production_kwh: float = 0.0
         self._tomorrow_production_kwh: float = 0.0
         self._now_production_kw: float = 0.0

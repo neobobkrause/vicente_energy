@@ -1,3 +1,5 @@
+"""Service implementations for FranklinWH devices."""
+
 import logging
 from typing import Optional
 
@@ -9,7 +11,10 @@ from .solar_service import SolarService
 _LOGGER = logging.getLogger(__name__)
 
 class FranklinBatteryService(BatteryService):
+    """Battery service for FranklinWH systems."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
+        """Initialize the service with entity handlers."""
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.franklinwh_state_of_charge": self._handle_soc_change,
@@ -61,7 +66,10 @@ class FranklinBatteryService(BatteryService):
         return True
 
 class FranklinSolarService(SolarService):
+    """Solar production service for FranklinWH inverters."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
+        """Initialize the service with entity handlers."""
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.franklinwh_solar_energy": self._handle_now_change,
@@ -98,7 +106,10 @@ class FranklinSolarService(SolarService):
         return True
 
 class FranklinGridService(GridService):
+    """Grid data service for FranklinWH gateway."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
+        """Initialize the service with entity handlers."""
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
             "sensor.franklinwh_grid_export": self._handle_today_export_change,
@@ -139,12 +150,15 @@ class FranklinGridService(GridService):
         try:
             value = float(new_state.state)
         except ValueError:
-            _LOGGER.warning("Failed to parse Franklin home load now from state: %s", new_state.state)
+            _LOGGER.warning(
+                "Failed to parse Franklin home load now from state: %s",
+                new_state.state,
+            )
             return False
 
-            if self._today_import_kwh = value:
-                return False
+        if self._now_home_load_kw == value:
+            return False
 
-            self._today_import_kwh = value
-            _LOGGER.debug("Franklin home load now updated: %.2f", value)
-            return True
+        self._now_home_load_kw = value
+        _LOGGER.debug("Franklin home load now updated: %.2f", value)
+        return True

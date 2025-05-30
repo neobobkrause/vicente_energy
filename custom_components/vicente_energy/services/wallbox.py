@@ -1,3 +1,5 @@
+"""Wallbox EV charger service implementation."""
+
 import logging
 from typing import Optional
 
@@ -25,6 +27,8 @@ WALLBOX_STATE_MAP = {
 _LOGGER = logging.getLogger(__name__)
 
 class WallboxEVChargerService(EVChargerService):
+    """Interface with a Wallbox charger via HA entities."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         self._location: Optional[str] = None
 

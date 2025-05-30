@@ -1,4 +1,6 @@
 
+"""Expose available service classes and service type mappings."""
+
 # Explicitly import service classes for easy external access
 
 from enum import StrEnum, auto
@@ -24,6 +26,7 @@ from .services.wallbox import WallboxEVChargerService
 
 
 class ServiceType(StrEnum):
+    """Enumeration of supported service categories."""
     EV_CHARGER_SERVICE = auto()
     BATTERY_SERVICE = auto()
     SOLAR_SERVICE = auto()

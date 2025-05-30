@@ -1,8 +1,13 @@
+"""Abstract solar production service base class."""
+
 from .service import VEEntityStateChangeHandler, VEService
 
 
 class SolarService(VEService):
+    """Base class for solar production providers."""
+
     def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
+        """Initialize default production values."""
         self._now_production_kw: float = 0.0
         self._today_production_kwh: float = 0.0
 

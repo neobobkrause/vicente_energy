@@ -1,3 +1,5 @@
+"""Constants for the Vicente Energy integration."""
+
 DOMAIN = "vicente_energy"
 
 CONF_SOLAR_POWER_ENTITY = "solar_power_entity"
