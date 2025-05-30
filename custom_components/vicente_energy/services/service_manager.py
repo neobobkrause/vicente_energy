@@ -1,3 +1,5 @@
+"""Create and manage external service instances."""
+
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -8,8 +10,10 @@ from .wallbox_service import WallboxEVChargerService
 
 
 class ServiceManager:
+    """Coordinate the external forecast and charger services."""
+
     def __init__(self, hass, forecast_type: str = "none", charger_type: str = "none"):
-        """Initialize the ServiceManager with specified service types."""
+        """Initialize the manager with the selected service types."""
         self.hass = hass
         self.forecast_type = forecast_type
         self.charger_type = charger_type
@@ -38,7 +42,7 @@ class ServiceManager:
 
 
     async def connect_services(self):
-        """Connect to external services asynchronously (if any)."""
+        """Connect to any configured external services."""
         tasks = []
         if self.forecast_service:
             tasks.append(self.forecast_service.connect())
@@ -49,7 +53,7 @@ class ServiceManager:
 
 
     def update_services(self, forecast_type: str, charger_type: str):
-        """Dynamically update the service types and reinitialize services."""
+        """Recreate services if the desired implementations have changed."""
         _LOGGER = logging.getLogger(__name__)
         # Update forecast service if changed
         if forecast_type.lower() != (self.forecast_type.lower() if self.forecast_type else "none"):
@@ -88,22 +92,26 @@ class ServiceManager:
                 self.hass.loop.create_task(self.charger_service.connect())
 
     async def get_forecast(self):
+        """Return the latest solar forecast from the configured service."""
         if not self.forecast_service:
             return {}  # No external service, forecast will come from sensors
         return await self.forecast_service.get_forecast()
 
 
     async def get_charger_state(self):
+        """Return the charger state from the configured service."""
         if not self.charger_service:
             return {}  # No external service, charger state from sensors
         return await self.charger_service.get_charger_state()
 
 
     def register_forecast_callback(self, cb):
+        """Subscribe to forecast updates from the service."""
         if self.forecast_service:
             self.forecast_service.register_callback(cb)
 
 
     def register_charger_callback(self, cb):
+        """Subscribe to charger state updates from the service."""
         if self.charger_service:
             self.charger_service.register_callback(cb)

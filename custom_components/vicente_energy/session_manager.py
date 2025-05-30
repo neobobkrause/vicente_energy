@@ -1,8 +1,13 @@
+"""Track and update state for an active charging session."""
+
 from datetime import datetime, timedelta
 
 
 class SessionManager:
+    """Manage the lifecycle and metrics of charging sessions."""
+
     def __init__(self, hass, state_manager):
+        """Initialize with the Home Assistant instance and state manager."""
         self.hass = hass
         self.state = state_manager
         self.session_start_time = None
@@ -15,9 +20,11 @@ class SessionManager:
         self.estimates = None
 
     def is_active(self):
+        """Return True if a charging session is currently active."""
         return self.charge_state == "active_session"
 
     def update_charge_state(self, wallbox_state):
+        """Update the session state based on Wallbox charger status."""
         old_state = self.charge_state
         if wallbox_state == "charging":
             if old_state != "active_session":
@@ -40,16 +47,20 @@ class SessionManager:
             self.active = False
 
     def set_power_level(self, power_kw):
+        """Store the current charger power level in kW."""
         self.current_power_kw = power_kw
 
     def set_estimates(self, estimates):
+        """Update forecast estimates for the session."""
         self.estimates = estimates
         self.session_available_after = estimates.available_after_kwh
 
     def set_budget(self, budget_kwh):
+        """Set the remaining energy budget for this session."""
         self.budget_remaining = budget_kwh
 
     def increment_energy(self, elapsed_minutes):
+        """Advance energy counters based on elapsed time."""
         if self.active and hasattr(self, "current_power_kw"):
             added_kwh = self.current_power_kw * (elapsed_minutes / 60)
             self.session_kwh_used += added_kwh

@@ -1,9 +1,13 @@
+"""Persist integration state such as learned biases and history."""
+
 from homeassistant.helpers.storage import Store
 
 
 class StateManager:
+    """Wrapper around Home Assistant storage for persistent state."""
 
     def __init__(self, hass, entry_id):
+        """Initialize storage with given entry identifier."""
         self.hass = hass
         self.entry_id = entry_id
         self._store = Store(hass, f"vicente_energy_{entry_id}", f"vicente_energy_{entry_id}.json")
@@ -18,26 +22,33 @@ class StateManager:
         }
 
     def update_solar_bias(self, bias: float):
+        """Store new solar bias value."""
         self.data['solar_bias'] = bias
 
     def update_load_bias(self, bias: float):
+        """Store new load bias value."""
         self.data['load_bias'] = bias
 
     def get_load_bias(self) -> float:
+        """Return the current load bias."""
         return self.data.get('load_bias', 0.0)
 
     def get_session_bias(self) -> float:
+        """Return the learned session bias."""
         return self.data.get('session_bias', 0.0)
 
     async def async_load(self):
+        """Load state data from disk."""
         stored = await self._store.async_load()
         if stored:
             self.data.update(stored)
 
     async def async_save(self):
+        """Persist current state to disk."""
         await self._store.async_save(self.data)
 
     async def update_session_bias(self, alpha: float, actual_kwh: float):
+        """Apply a learning update to the stored session bias."""
         current_bias = self.data.get('session_bias', 0.0)
         new_bias = current_bias + alpha * (actual_kwh - current_bias)
         self.data['session_bias'] = new_bias
@@ -46,6 +57,7 @@ class StateManager:
         await self.async_save()
 
     async def set_session_bias(self, bias_value: float):
+        """Set the session bias to an explicit value."""
         self.data['session_bias'] = bias_value
         await self.async_save()
 
@@ -56,7 +68,7 @@ class StateManager:
 
     # New methods:
     async def learn_session_bias(self, actual_kwh: float, estimated_kwh: float):
-        """Alternative method to update session bias directly using actual vs estimated (called by SessionManager)."""
+        """Update session bias using actual vs estimated usage."""
         error = actual_kwh - estimated_kwh
         alpha = self.data.get('session_learning_alpha', 0.1)
         current_bias = self.data.get('session_bias', 0.0)
@@ -83,4 +95,5 @@ class StateManager:
         await self.async_save()
 
     def get_solar_bias(self) -> float:
+        """Return the current solar bias."""
         return self.data.get('solar_bias', 0.0)

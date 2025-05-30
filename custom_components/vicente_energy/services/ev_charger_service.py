@@ -1,3 +1,5 @@
+"""Base classes and helpers for EV charger integrations."""
+
 from abc import abstractmethod
 from enum import StrEnum
 from typing import Optional
@@ -8,6 +10,8 @@ from .service import VEEntityStateChangeHandler, VEService
 
 
 class EVChargerState(StrEnum):
+    """Enumerate possible charger states reported by services."""
+
     CHARGER_UNKNOWN = "unknown"
     CHARGER_DISCONNECTED = "disconnected"
     CHARGER_WAITING = "waiting"
@@ -21,13 +25,18 @@ class EVChargerState(StrEnum):
 DEFAULT_CHARGER_VOLTAGE = 240  # residential split-phase typical
 
 def convert_kw_to_amps(power_kw: float, voltage: int = DEFAULT_CHARGER_VOLTAGE) -> int:
+    """Convert charging power from kW to amps."""
     return int((power_kw * 1000) / voltage)
 
 def convert_amps_to_kw(power_a: float, voltage: int = DEFAULT_CHARGER_VOLTAGE) -> float:
-    return (power_a * voltage)/ 1000
+    """Convert charging power from amps to kW."""
+    return (power_a * voltage) / 1000
 
 class EVChargerService(VEService):
+    """Common functionality for EV charger services."""
+
     def __init__(self, hass: Optional[HomeAssistant], entity_handlers: dict[str, VEEntityStateChangeHandler]) -> None:
+        """Initialize default charger state."""
         self._charger_state = EVChargerState.CHARGER_UNKNOWN
         self._voltage: int = DEFAULT_CHARGER_VOLTAGE
         self._max_charging_power_amps: int = 0
@@ -36,30 +45,39 @@ class EVChargerService(VEService):
         super().__init__(hass, entity_handlers)
 
     async def get_charger_state(self) -> EVChargerState:
+        """Return the current charger state."""
         return self._charger_state
 
     async def get_charging_power_amps(self) -> int:
+        """Return charging power in amps."""
         return convert_kw_to_amps(self._charging_power_kw, self._voltage)
 
     async def get_charging_power_kw(self) -> float:
+        """Return charging power in kW."""
         return self._charging_power_kw
 
     async def get_max_charging_power_kw(self) -> float:
+        """Return the maximum supported charging power in kW."""
         return convert_amps_to_kw(self._max_charging_power_amps, self._voltage)
 
     async def get_max_charging_power_amps(self) -> int:
+        """Return the maximum supported charging power in amps."""
         return self._max_charging_power_amps
 
     async def get_charger_voltage(self) -> int:
+        """Return the charger supply voltage."""
         return self._voltage
 
     async def set_charger_voltage(self, voltage: int) -> None:
+        """Update the charger supply voltage."""
         self._voltage = voltage
 
     @abstractmethod
     async def set_charging_power_amps(self, power_amps: int) -> None:
+        """Set the charger output using an amp value."""
         pass
 
     @abstractmethod
     async def set_charging_power_kw(self, power_kw: float) -> None:
+        """Set the charger output using a kW value."""
         pass

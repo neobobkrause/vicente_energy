@@ -1,8 +1,13 @@
+"""Base class for solar production forecast services."""
+
 from .service import VEEntityStateChangeHandler, VEService
 
 
 class ForecastService(VEService):
+    """Provide solar production forecasts."""
+
     def __init__(self, hass, entity_handlers: dict[str, VEEntityStateChangeHandler]):
+        """Initialize forecast storage attributes."""
         self._today_production_kwh: float = 0.0
         self._tomorrow_production_kwh: float = 0.0
         self._now_production_kw: float = 0.0
@@ -10,19 +15,24 @@ class ForecastService(VEService):
         super().__init__(hass, entity_handlers)
 
     async def get_today_production_kwh(self) -> float:
+        """Return today's forecasted solar production in kWh."""
         return _today_production_kwh
 
     async def get_tomorrow_production_kwh(self) -> float:
+        """Return tomorrow's forecasted solar production in kWh."""
         return _tomorrow_production_kwh
 
     async def get_now_production_kw(self) -> float:
+        """Return current estimated solar production in kW."""
         return _now_production_kw
 
     async def get_this_hour_production_kwh(self) -> float:
+        """Return forecasted production for the current hour."""
         current_hour = datetime.now().hour  # 0 through 23
         return self._get_today_hour_production_kwh(current_hour)
 
     async def get_next_hour_production_kwh(self) -> float:
+        """Return forecasted production for the next hour."""
         current_hour = datetime.now().hour  # 0 through 23
         if (current_hour == 23):
             return self._get_tomorrow_hour_production_kwh(0)
@@ -31,9 +41,11 @@ class ForecastService(VEService):
 
     @abstractmethod
     async def _get_today_hour_production_kwh(self, hour: int) -> float:
+        """Retrieve the production forecast for the given hour today."""
         pass
 
     @abstractmethod
     async def _get_tomorrow_hour_production_kwh(self, hour: int) -> float:
+        """Retrieve the production forecast for the given hour tomorrow."""
         pass
 

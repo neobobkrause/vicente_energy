@@ -1,3 +1,5 @@
+"""Service implementations for FranklinWH devices."""
+
 import logging
 from typing import Optional
 
@@ -9,6 +11,8 @@ from .solar_service import SolarService
 _LOGGER = logging.getLogger(__name__)
 
 class FranklinBatteryService(BatteryService):
+    """Battery service for FranklinWH systems."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
@@ -61,6 +65,8 @@ class FranklinBatteryService(BatteryService):
         return True
 
 class FranklinSolarService(SolarService):
+    """Solar production service for FranklinWH inverters."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {
@@ -98,6 +104,8 @@ class FranklinSolarService(SolarService):
         return True
 
 class FranklinGridService(GridService):
+    """Grid data service for FranklinWH gateway."""
+
     def __init__(self, hass: Optional[HomeAssistant]) -> None:
         # Define handlers
         handlers: dict[str, VEEntityStateChangeHandler] = {

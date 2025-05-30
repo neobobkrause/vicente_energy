@@ -1,4 +1,6 @@
 
+"""Home Assistant entrypoint for the Vicente Energy integration."""
+
 import logging
 from datetime import timedelta
 
@@ -180,7 +182,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 class VicenteEnergyCoordinator(DataUpdateCoordinator):
+    """Coordinator to publish calculated Vicente Energy values."""
+
     def __init__(self, hass, sensors, location_name, solar_forecast, ev_charger):
+        """Initialize the coordinator with entity IDs and configuration."""
         self.hass = hass
         self.sensors = sensors
         self.location_name = location_name
@@ -195,6 +200,7 @@ class VicenteEnergyCoordinator(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self):
+        """Refresh calculated sensor values."""
         calculated_values = {
             "solar_power": 0,
             "battery_soc": 0,
